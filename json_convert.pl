@@ -250,11 +250,13 @@ type_checks([Type|T], [IV|IVars], [OV|OVars], (Goal, Body), M) :- !,
 	type_checks(T, IVars, OVars, Body, M).
 
 type_check(any, IV, OV, M, prolog_to_json(IV, OV, M)) :- !.
+type_check(term, IV, OV, _M, term_to_atom_unquoted(IV, OV)) :- !.
 type_check(Name/Arity, IV, OV, M, prolog_to_json(IV, OV, M)) :- !,
 	functor(IV, Name, Arity).
 type_check(boolean, IV, OV, _, prolog_bool_to_json(IV, OV)) :- !.
 type_check(list, IV, OV, M, prolog_list_to_json(IV, OV, M)) :- !.
 type_check(list(any), IV, OV, M, prolog_list_to_json(IV, OV, M)) :- !.
+type_check(list(term), IV, OV, _M, maplist(term_to_atom_unquoted, IV, OV)) :- !.
 type_check(list(_Type), IV, OV, M, prolog_list_to_json(IV, OV, M)) :- !.
 type_check(Type, V, V, _, Goal) :-
 	type_goal(Type, V, Goal).
@@ -612,6 +614,9 @@ match_field(Type, Var, Var, _, Goal) :-
 :- public json_bool_to_prolog/2.
 
 json_bool_to_prolog(@(True), True).
+
+term_to_atom_unquoted(Term, Atom) :-
+    with_output_to(atom(Atom), (numbervars(Term, 0, _), write_term(Term, [numbervars(true), quoted=false]))).
 
 
 		 /*******************************
